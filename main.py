@@ -9,11 +9,16 @@ import json
 import anyio # Added for safe async file operations
 from database import get_async_db, lifespan
 from storage import upload_file_to_object_storage
+from dotenv import load_dotenv
 
-app = FastAPI(lifespan=lifespan)
+load_dotenv("GEMINI_API_KEY")
 
-# UPDATE 1: Secure API key loading
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+app = FastAPI()
+
+client = genai.Client(
+    api_key=os.environ.get("GEMINI_API_KEY")
+)
+
 
 class ExpenseCategory(str, Enum):
     PROGRAM_SUPPLIES = "Program Supplies"
