@@ -1,0 +1,74 @@
+[
+  {
+    "id": "angat-buhay-launch",
+    "name": "Angat Buhay NGO Launch and Likha Festival",
+    "date": "2022-07-01",
+    "endDate": "2022-07-02",
+    "datePrecision": "day",
+    "program": "Community Engagement",
+    "location": "Volunteer Center, Katipunan Avenue, Quezon City",
+    "description": "The Angat Buhay non-government organization launch and Likha Festival.",
+    "sourceNote": "PhilSTAR Life, “Street and Art Festival to mark Angat Buhay NGO launch” (reports the announced July 1–2 schedule; https://philstarlife.com/geeky/653224-street-and-art-festival-to-mark-angat-buhay-ngo-launch)."
+  },
+  {
+    "id": "tiktok-launch",
+    "name": "Angat Buhay TikTok Channel Launch",
+    "date": "2023-02-14",
+    "datePrecision": "day",
+    "program": "Community Engagement",
+    "location": "Online",
+    "description": "Online volunteer recruitment through the Angat Buhay TikTok channel.",
+    "sourceNote": "Angat Buhay, “WATCH: Angat Buhay launches TikTok channel to reach more volunteers” (https://www.angatbuhay.ph/watch-angat-buhay-launches-tiktok-channel-to-reach-more-volunteers/)."
+  },
+  {
+    "id": "bicol-classroom-dorm",
+    "name": "New Classroom and Dormitory Unveiling, Bicol",
+    "date": "2023-04",
+    "datePrecision": "month",
+    "program": "Public Education",
+    "location": "Bicol Region",
+    "description": "Unveiling of a new classroom and dormitory in Bicol; the exact day has not been supplied.",
+    "sourceNote": "Angat Buhay, “Robredo’s Angat Buhay unveils new classroom & dorm in Bicol” (published April 27, 2023; describes the turnover as earlier that week, not June; https://www.angatbuhay.ph/robredos-angat-buhay-unveils-new-classroom-dorm-in-bicol/)."
+  },
+  {
+    "id": "museo-ng-pag-asa",
+    "name": "Museo ng Pag-asa Opens to Walk-ins",
+    "date": "2023-03-01",
+    "datePrecision": "day",
+    "program": "Community Engagement",
+    "location": "Quezon City",
+    "description": "Museo ng Pag-asa began welcoming walk-in visitors on March 1, 2023.",
+    "sourceNote": "Angat Buhay, “Angat Buhay’s Museo ng Pag-asa to welcome walk-ins in March” (states walk-ins begin March 1, 2023; https://www.angatbuhay.ph/angat-buhays-museo-ng-pag-asa-to-welcome-walk-ins-in-march/)."
+  },
+  {
+    "id": "disaster-center-deal",
+    "name": "Angat Buhay Center for Disaster Preparedness and Response Partnership",
+    "date": "2023-03-10",
+    "datePrecision": "day",
+    "program": "Disaster Relief and Rehabilitation",
+    "location": "Philippines",
+    "description": "The partnership’s memorandum of agreement was signed on March 10, 2023.",
+    "sourceNote": "Angat Buhay, “Robredo’s Angat Buhay inks deal to build disaster preparedness and response center” (reports the March 10, 2023 MOA signing; https://www.angatbuhay.ph/robredos-angat-buhay-inks-deal-to-build-disaster-preparedness-and-response-center/)."
+  },
+  {
+    "id": "bayanihan-ekonsulta",
+    "name": "Bayanihan E-Konsulta Telehealth Program",
+    "date": "2022-07",
+    "endDate": "2022-12",
+    "datePrecision": "month",
+    "program": "Health",
+    "location": "Online",
+    "description": "Telehealth program reported as operating from July through December 2022.",
+    "sourceNote": "Angat Buhay, “Bayanihan E-Konsulta, patuloy na um aarangkada” (reports the July–December 2022 operating period; https://www.angatbuhay.ph/bayanihan-e-konsulta-patuloy-na-umaarangkada/)."
+  },
+  {
+    "id": "west-covina-fundraiser",
+    "name": "West Covina Fundraising Event, California",
+    "date": "2024",
+    "datePrecision": "year",
+    "program": "Fundraising",
+    "location": "West Covina, California",
+    "description": "Fundraising event in West Covina, California; the exact date has not been supplied.",
+    "sourceNote": "No event-specific source confirming a West Covina fundraiser or date was located. ABS-CBN, “Former vice president Leni Robredo brings Angat Buhay to U.S.” covers U.S. activity but does not substantiate this specific event (https://www.abs-cbn.com/news/05/07/24/former-vice-president-leni-robredo-brings-angat-buhay-to-us). Confirm before treating as documented."
+  }
+]

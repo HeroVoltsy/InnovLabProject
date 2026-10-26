@@ -210,7 +210,6 @@ export default function ExpenseForm({ onViewExpenses }) {
           <h1 className="mt-2 text-3xl font-black tracking-tight text-navy">Record an expense</h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Snap a receipt and we’ll help fill in the details. You’ll review everything before saving.</p>
         </div>
-        <span className="w-fit rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-900">Sample data · prototype</span>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">

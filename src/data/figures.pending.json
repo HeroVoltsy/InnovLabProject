@@ -1,0 +1,138 @@
+{
+  "budgets": [
+    {
+      "id": "pending-budget-launch",
+      "dateReceived": "2022-07-01",
+      "sourceDonor": "Provisional community contributors",
+      "sourceType": "Community",
+      "amount": 50000,
+      "restriction": "Restricted",
+      "targetEventId": "angat-buhay-launch",
+      "targetProject": null,
+      "referenceDocument": null,
+      "provisional": true
+    },
+    {
+      "id": "pending-budget-classroom",
+      "dateReceived": "2023-04-01",
+      "sourceDonor": "Provisional education contributors",
+      "sourceType": "Community",
+      "amount": 120000,
+      "restriction": "Restricted",
+      "targetEventId": "bicol-classroom-dorm",
+      "targetProject": "Bicol classroom and dormitory",
+      "referenceDocument": null,
+      "provisional": true
+    },
+    {
+      "id": "pending-budget-general",
+      "dateReceived": "2023-02-14",
+      "sourceDonor": "Provisional individual contributors",
+      "sourceType": "Individual",
+      "amount": 80000,
+      "restriction": "Unrestricted",
+      "targetEventId": null,
+      "targetProject": null,
+      "referenceDocument": null,
+      "provisional": true
+    },
+    {
+      "id": "pending-budget-fundraiser",
+      "dateReceived": "2024-01-01",
+      "sourceDonor": "Provisional West Covina contributors",
+      "sourceType": "Fundraising",
+      "amount": 70000,
+      "restriction": "Restricted",
+      "targetEventId": "west-covina-fundraiser",
+      "targetProject": null,
+      "referenceDocument": null,
+      "provisional": true
+    }
+  ],
+  "expenses": [
+    {
+      "id": "pending-expense-launch-supplies",
+      "date": "2022-07-02",
+      "vendor": "Provisional community supplier",
+      "amount": 12500,
+      "category": "Program Supplies",
+      "description": "Provisional community event supplies",
+      "receiptRef": "pending:launch-supplies",
+      "submitter": "Provisional record",
+      "status": "Approved",
+      "eventId": "angat-buhay-launch",
+      "program": "Community Engagement",
+      "provisional": true
+    },
+    {
+      "id": "pending-expense-tiktok-transport",
+      "date": "2023-02-14",
+      "vendor": "Provisional transport provider",
+      "amount": 9500,
+      "category": "Transportation",
+      "description": "Provisional volunteer transport",
+      "receiptRef": "pending:tiktok-transport",
+      "submitter": "Provisional record",
+      "status": "Approved",
+      "eventId": "tiktok-launch",
+      "program": "Community Engagement",
+      "provisional": true
+    },
+    {
+      "id": "pending-expense-museo-admin",
+      "date": "2023-03-15",
+      "vendor": "Provisional venue provider",
+      "amount": 6800,
+      "category": "Administrative",
+      "description": "Provisional visitor service expense",
+      "receiptRef": "pending:museo-service",
+      "submitter": "Provisional record",
+      "status": "Approved",
+      "eventId": "museo-ng-pag-asa",
+      "program": "Community Engagement",
+      "provisional": true
+    },
+    {
+      "id": "pending-expense-classroom-equipment",
+      "date": "2023-04-25",
+      "vendor": "Provisional classroom supplier",
+      "amount": 28000,
+      "category": "Equipment",
+      "description": "Provisional classroom equipment",
+      "receiptRef": "pending:classroom-equipment",
+      "submitter": "Provisional record",
+      "status": "Approved",
+      "eventId": "bicol-classroom-dorm",
+      "program": "Public Education",
+      "provisional": true
+    },
+    {
+      "id": "pending-expense-fundraiser-supplies",
+      "date": "2024-05-01",
+      "vendor": "Provisional event supplier",
+      "amount": 12000,
+      "category": "Program Supplies",
+      "description": "Provisional fundraising event supplies",
+      "receiptRef": "pending:fundraising-supplies",
+      "submitter": "Provisional record",
+      "status": "Approved",
+      "eventId": "west-covina-fundraiser",
+      "program": "Fundraising",
+      "provisional": true
+    },
+    {
+      "id": "pending-expense-disaster-pending",
+      "date": "2023-08-10",
+      "vendor": "Provisional safety supplier",
+      "amount": 11000,
+      "category": "Program Supplies",
+      "description": "Provisional preparedness supplies awaiting review",
+      "receiptRef": "pending:preparedness-supplies",
+      "submitter": "Provisional record",
+      "status": "Pending",
+      "eventId": "disaster-center-deal",
+      "program": "Disaster Relief and Rehabilitation",
+      "provisional": true
+    }
+  ]
+}
