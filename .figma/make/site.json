@@ -1,4 +1,7 @@
 {
+  "icons": {
+    "icon": "/bantay_pondologo.png"
+  },
   "description": "Helps Philippine nonprofits organize financial records and lets donors trace project budgets, spending, and outcomes through clearly documented records.",
   "robots": {
     "index": false
