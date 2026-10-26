@@ -11,14 +11,15 @@ from database import get_async_db, lifespan
 from storage import upload_file_to_object_storage
 from dotenv import load_dotenv
 
-load_dotenv("GEMINI_API_KEY")
+load_dotenv(".env")
+
+api_key = os.getenv("GEMINI_API_KEY")
 
 app = FastAPI()
 
 client = genai.Client(
-    api_key=os.environ.get("GEMINI_API_KEY")
+    api_key=api_key
 )
-
 
 class ExpenseCategory(str, Enum):
     PROGRAM_SUPPLIES = "Program Supplies"
