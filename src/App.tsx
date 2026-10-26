@@ -1,5 +1,7 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react'
 import ExpenseForm from './components/receipt/ExpenseForm.jsx'
+
+const ReportsPage = lazy(() => import('./components/reports/ReportsPage.jsx'))
 
 type View = 'home'|'reports'|'quarterly'|'project'|'donations'|'explorer'|'login'|'dashboard'|'scanner'|'budget'|'records'|'review'|'checker'|'builder'|'projects'
 
@@ -53,7 +55,7 @@ const Icon=({name,size=20}:{name:string,size?:number})=>{
 }
 const Button=({children,kind='primary',onClick}:{children:ReactNode,kind?:'primary'|'secondary'|'ghost',onClick?:()=>void})=><button className={`btn ${kind}`} onClick={onClick}>{children}</button>
 const Status=({type,children}:{type:string,children:ReactNode})=><span className={`status ${type}`}>{type==='unlinked'&&<Icon name="link" size={13}/>} {children}</span>
-const Sample=()=> <span className="sample">Sample data</span>
+const Sample=()=>null
 const Brand=({showMark=true}:{showMark?:boolean})=> <div className="brand">{showMark&&<svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#F2B33D"/><circle cx="32" cy="32" r="24" fill="none" stroke="#12355B" strokeWidth="1.5"/><path d="M13 45c8-2 13-7 19-23 7 16 12 21 19 23v4H13z" fill="#12355B"/><path d="m27 31 5-9 5 10-5-3z" fill="#1F9E89"/><path d="M15 45c7 1 11-1 17-3 6-2 11 1 17 3" fill="none" stroke="#1F9E89" strokeWidth="2" strokeLinecap="round"/></svg>}<span><b>Bantay<span>Pondo</span></b><small>Bantay ang pondo, buo ang tiwala.</small></span></div>
 
 function PublicNav({go,home=false}:{go:(v:View)=>void;home?:boolean}){
@@ -61,7 +63,7 @@ function PublicNav({go,home=false}:{go:(v:View)=>void;home?:boolean}){
   const navigate=(view:View)=>{go(view);setMenuOpen(false)}
   return <header className={`public-nav${menuOpen?' menu-open':''}`}><button onClick={()=>navigate('home')}><Brand showMark={!home}/></button><nav><button onClick={()=>go('reports')}>Reports</button><button onClick={()=>go('project')}>Projects</button><button onClick={()=>go('donations')}>Donations</button><button onClick={()=>go('explorer')}>Budget explorer</button></nav>{!home&&<Sample/>}<Button kind="secondary" onClick={()=>go('login')}>Staff portal</Button><button type="button" className="mobile-nav-toggle" aria-label={menuOpen?'Close navigation menu':'Open navigation menu'} aria-expanded={menuOpen} onClick={()=>setMenuOpen(!menuOpen)}><Icon name={menuOpen?'close':'menu'} size={21}/></button><div className="mobile-nav-menu" aria-hidden={!menuOpen}><button onClick={()=>navigate('reports')}>Reports</button><button onClick={()=>navigate('project')}>Projects</button><button onClick={()=>navigate('donations')}>Donations</button><button onClick={()=>navigate('explorer')}>Budget Explorer</button><button onClick={()=>navigate('login')}>Staff Portal</button></div></header>
 }
-const Footer=({home=false}:{home?:boolean})=> <footer><b>Angat Buhay · BantayPondo</b><span>Figures are based on records submitted by Angat Buhay and have not been independently audited.</span>{!home&&<Sample/>}</footer>
+const Footer=({home=false}:{home?:boolean})=> <footer><b>Angat Buhay · BantayPondo</b><span>Para sa mga non-profit sa Bicol.</span></footer>
 const PublicShell=({go,children,home=false}:{go:(v:View)=>void,children:ReactNode;home?:boolean})=><div className="public"><PublicNav go={go} home={home}/>{children}<Footer home={home}/></div>
 
 function PublicHome({go}:{go:(v:View)=>void}){
@@ -74,8 +76,7 @@ function PublicHome({go}:{go:(v:View)=>void}){
 }
 
 function Reports({go}:{go:(v:View)=>void}){
-  const [q,setQ]=useState(''); const shown=reports.filter(r=>r[0].toLowerCase().includes(q.toLowerCase()))
-  return <PublicShell go={go}><main className="public-main page"><div className="page-title"><div><small>PUBLIC LIBRARY</small><h1>Transparency reports</h1><p>Published financial records in one clear, searchable place.</p></div><Sample/></div><div className="filters"><label><Icon name="search"/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search reports"/></label>{['Program','Year: 2026','Quarter / month','Project','Report type'].map(x=><select><option>{x}</option></select>)}</div>{!shown.length?<div className="empty"><Icon name="search" size={34}/><h3>No reports found</h3><p>Try clearing a filter or using a different search.</p></div>:<div className="report-grid">{shown.map((r,i)=><article className={r[5]==='pending'?'report-card muted':''}><div><span className="doc-icon"><Icon name="receipt"/></span><Status type={r[5]}>{r[5]==='pending'?'Under review':'Complete'}</Status></div><small>{r[4]} · {r[1]}</small><h3>{r[0]}</h3><dl><div><dt>Total budget</dt><dd>{r[2]}</dd></div><div><dt>Total spent</dt><dd>{r[3]}</dd></div></dl><div><Button kind="secondary">Download PDF</Button><Button onClick={()=>go(i===4?'project':'quarterly')} >View report</Button></div>{r[5]==='pending'&&<p>Awaiting approval. Not yet public.</p>}</article>)}</div>}</main></PublicShell>
+  return <PublicShell go={go}><Suspense fallback={<div className="public-main page" role="status">Loading reports…</div>}><ReportsPage/></Suspense></PublicShell>
 }
 
 const Bar=({label,value,max=100}:{label:string,value:number,max?:number})=><div className="bar"><span>{label}</span><div><i style={{width:`${value/max*100}%`}}/></div><b>{value}</b></div>
@@ -110,7 +111,7 @@ function Login({go}:{go:(v:View)=>void}){
   return <div className="login-page"><div className="login-brand"><Brand/><Sample/><div><h1>Records with purpose.<br/>Reports with clarity.</h1><p>Private workspace for authorized Angat Buhay staff.</p></div><small>Sample prototype · No real financial data</small></div><div className="login-box"><button className="back" onClick={()=>go('home')}>← Back to public site</button><h2>Welcome back</h2><p>Sign in to the Angat Buhay staff portal.</p><label>Email address<input defaultValue="maria.santos@example.org"/></label><label>Password<input type="password" defaultValue="samplepassword"/></label><label>Role<select><option>Admin · Maria Santos</option><option>Finance Staff · Juan dela Cruz</option><option>Reviewer / Approver · Ana Reyes</option></select></label><Button onClick={()=>go('dashboard')}>Sign in to staff portal</Button><div className="restricted"><Icon name="alert"/><span><b>Access restricted</b> This area is for authorized staff only.</span></div></div></div>
 }
 
-const MetricCards=()=> <div className="metric-grid">{[['Total Funds Available','₱12,800,000'],['Total Expenses','₱9,470,680'],['Ending Balance','₱3,329,320'],['Restricted / Unrestricted','61% / 39%']].map(x=><article><span>{x[0]}</span><h2>{x[1]}</h2><small>Sample data · recorded</small></article>)}</div>
+const MetricCards=()=> <div className="metric-grid">{[['Total Funds Available','₱12,800,000'],['Total Expenses','₱9,470,680'],['Ending Balance','₱3,329,320'],['Restricted / Unrestricted','61% / 39%']].map(x=><article><span>{x[0]}</span><h2>{x[1]}</h2><small>Provisional figures</small></article>)}</div>
 function Dashboard({go}:{go:(v:View)=>void}){
  return <div className="staff-content"><div className="staff-title"><div><small>MONDAY, 20 MAY 2026</small><h1>Good morning, Maria.</h1><p>Here is what needs your attention today.</p></div><Button onClick={()=>go('scanner')}><Icon name="upload"/> Add a record</Button></div><MetricCards/><div className="staff-grid"><section className="panel chart-card"><h3>Budget vs. actual by project</h3>{projects.slice(0,6).map((p,i)=><Bar label={p[1]} value={[92,76,63,86,70,81][i]}/>)}</section><section className="panel attention"><div className="panel-head"><h3>Needs attention</h3><button onClick={()=>go('checker')}>View all</button></div>{flags.slice(0,4).map(f=><button onClick={()=>go('checker')}><span className={`flag-icon ${f[3]}`}><Icon name={f[3]==='unlinked'?'link':'alert'}/></span><div><b>{f[0]}</b><small>{f[1]} · {f[2]}</small></div><Icon name="arrow" size={16}/></button>)}</section></div><div className="staff-grid"><section className="panel queue"><div className="panel-head"><h3>Pending approvals</h3><Status type="pending">2 awaiting review</Status></div>{['Q3 2026 Quarterly Report','Typhoon Relief Project Report'].map(x=><button onClick={()=>go('builder')}><Icon name="receipt"/><span><b>{x}</b><small>Submitted by Juan dela Cruz</small></span><Icon name="arrow" size={16}/></button>)}</section><section className="panel activity"><div className="panel-head"><h3>Recent activity</h3></div>{['Ana approved the Q2 report','Juan uploaded 6 receipts','Maria updated the Health budget'].map((x,i)=><p><span>{['AR','JD','MS'][i]}</span>{x}<small>{i+1}h ago</small></p>)}</section></div></div>
 }
@@ -129,7 +130,7 @@ function BudgetForm({go}:{go:(v:View)=>void}){
 function Records(){
  const [tab,setTab]=useState('Expenses');const expenseRows=useMemo(()=>Array.from({length:38},(_,i)=>[`May ${String(2+i%28).padStart(2,'0')}, 2026`,['Local hardware store','Sari-sari store','Bookstore','Printing shop','Jeepney operator'][i%5],['Plywood for barangay stage repair','Bottled water for volunteers','Student notebooks','Workshop handouts','Volunteer transport'][i%5],['Program Supplies','Transportation','Administrative','Equipment'][i%4],`₱${(1200+(i*1375)%28000).toLocaleString()}`,['Juan dela Cruz','Liza Mendoza','Paolo Garcia','Maria Santos'][i%4],i%9===0?'returned':i%7===0?'pending':'approved']),[])
  const budgetRows=useMemo(()=>Array.from({length:40},(_,i)=>[`Apr ${String(1+i%28).padStart(2,'0')}, 2026`,['City government grant','Private donor','Community fundraiser event'][i%3],`₱${(25000+(i*18750)%300000).toLocaleString()}`,i%3===1?'Unrestricted':'Restricted',i%3===1?'—':projects[i%12][1],i%4===0]),[])
- return <div className="staff-content"><div className="staff-title"><div><small>FINANCIAL RECORDS</small><h1>Records management</h1><p>Search, filter, sort, and manage recorded transactions.</p></div><div><Button kind="secondary" onClick={()=>setTab('Budgets')}>Funds received</Button></div><Sample/></div><div className="tabs">{['Expenses','Budgets','Documents'].map(x=><button className={tab===x?'active':''} onClick={()=>setTab(x)}>{x}<span>{x==='Expenses'?120:x==='Budgets'?40:35}</span></button>)}</div><div className="filters staff-filters"><label><Icon name="search"/><input placeholder={`Search ${tab.toLowerCase()}`}/></label><select><option>Date range</option></select><select><option>{tab==='Budgets'?'Restriction type':'Category'}</option></select><select><option>{tab==='Budgets'?'All sources':'Submitter'}</option></select><select><option>Status</option></select></div><section className="panel dense-table"><table>{tab==='Budgets'?<><thead><tr><th>Date Received</th><th>Source/Donor</th><th>Amount</th><th>Restriction</th><th>Target Project</th><th>Reference</th></tr></thead><tbody>{budgetRows.map(r=><tr><td>{r[0]}</td><td><b>{r[1]}</b></td><td><b>{r[2]}</b></td><td><Status type={r[3]==='Restricted'?'pending':'progress'}>{r[3]}</Status></td><td>{r[4]}</td><td>{r[5]?<Icon name="receipt" size={16}/>:<Status type="draft">Not attached</Status>}</td></tr>)}</tbody><tfoot><tr><td colSpan={2}>Total Funds Available</td><td><b>₱12,800,000</b></td><td colSpan={3}>Sample data</td></tr></tfoot></>:<><thead><tr><th>Date</th><th>Vendor</th><th>Description</th><th>Category</th><th>Amount</th><th>Submitter</th><th>Status</th><th>Receipt</th></tr></thead><tbody>{expenseRows.map(r=><tr><td>{r[0]}</td><td><b>{r[1]}</b></td><td>{r[2]}</td><td>{r[3]}</td><td><b>{r[4]}</b></td><td>{r[5]}</td><td><Status type={r[6]}>{r[6]==='approved'?'Approved':r[6]==='pending'?'Pending review':'Returned for correction'}</Status></td><td><Icon name="receipt" size={16}/></td></tr>)}</tbody><tfoot><tr><td colSpan={4}>Total Expenses</td><td><b>₱9,470,680</b></td><td colSpan={3}>Approved records only</td></tr></tfoot></>}</table></section></div>
+ return <div className="staff-content"><div className="staff-title"><div><small>FINANCIAL RECORDS</small><h1>Records management</h1><p>Search, filter, sort, and manage recorded transactions.</p></div><div><Button kind="secondary" onClick={()=>setTab('Budgets')}>Funds received</Button></div><Sample/></div><div className="tabs">{['Expenses','Budgets','Documents'].map(x=><button className={tab===x?'active':''} onClick={()=>setTab(x)}>{x}<span>{x==='Expenses'?120:x==='Budgets'?40:35}</span></button>)}</div><div className="filters staff-filters"><label><Icon name="search"/><input placeholder={`Search ${tab.toLowerCase()}`}/></label><select><option>Date range</option></select><select><option>{tab==='Budgets'?'Restriction type':'Category'}</option></select><select><option>{tab==='Budgets'?'All sources':'Submitter'}</option></select><select><option>Status</option></select></div><section className="panel dense-table"><table>{tab==='Budgets'?<><thead><tr><th>Date Received</th><th>Source/Donor</th><th>Amount</th><th>Restriction</th><th>Target Project</th><th>Reference</th></tr></thead><tbody>{budgetRows.map(r=><tr><td>{r[0]}</td><td><b>{r[1]}</b></td><td><b>{r[2]}</b></td><td><Status type={r[3]==='Restricted'?'pending':'progress'}>{r[3]}</Status></td><td>{r[4]}</td><td>{r[5]?<Icon name="receipt" size={16}/>:<Status type="draft">Not attached</Status>}</td></tr>)}</tbody><tfoot><tr><td colSpan={2}>Total Funds Available</td><td><b>₱12,800,000</b></td><td colSpan={3}>Provisional figures</td></tr></tfoot></>:<><thead><tr><th>Date</th><th>Vendor</th><th>Description</th><th>Category</th><th>Amount</th><th>Submitter</th><th>Status</th><th>Receipt</th></tr></thead><tbody>{expenseRows.map(r=><tr><td>{r[0]}</td><td><b>{r[1]}</b></td><td>{r[2]}</td><td>{r[3]}</td><td><b>{r[4]}</b></td><td>{r[5]}</td><td><Status type={r[6]}>{r[6]==='approved'?'Approved':r[6]==='pending'?'Pending review':'Returned for correction'}</Status></td><td><Icon name="receipt" size={16}/></td></tr>)}</tbody><tfoot><tr><td colSpan={4}>Total Expenses</td><td><b>₱9,470,680</b></td><td colSpan={3}>Approved records only</td></tr></tfoot></>}</table></section></div>
 }
 
 function ReviewQueue(){
@@ -158,13 +159,22 @@ function StaffShell({view,go}:{view:View,go:(v:View)=>void}){
 }
 
 export default function App(){
- const [view,setView]=useState<View>('home')
- if(['dashboard','scanner','budget','records','review','checker','builder','projects'].includes(view))return <StaffShell view={view} go={setView}/>
- if(view==='reports')return <Reports go={setView}/>
- if(view==='quarterly')return <Quarterly go={setView}/>
- if(view==='project')return <ProjectReport go={setView}/>
- if(view==='donations')return <Donations go={setView}/>
- if(view==='explorer')return <Explorer go={setView}/>
- if(view==='login')return <Login go={setView}/>
- return <PublicHome go={setView}/>
+ const [view,setView]=useState<View>(()=>['monthly','event','custom','annual'].includes(new URLSearchParams(window.location.search).get('type')??'')?'reports':'home')
+ const go=(next:View)=>{
+   setView(next)
+   if(next!=='reports'){
+     const params=new URLSearchParams(window.location.search)
+     for(const key of ['type','year','month','from','to','event','program','categories','search'])params.delete(key)
+     const query=params.toString()
+     window.history.replaceState(null,'',`${window.location.pathname}${query?`?${query}`:''}${window.location.hash}`)
+   }
+ }
+ if(['dashboard','scanner','budget','records','review','checker','builder','projects'].includes(view))return <StaffShell view={view} go={go}/>
+ if(view==='reports')return <Reports go={go}/>
+ if(view==='quarterly')return <Quarterly go={go}/>
+ if(view==='project')return <ProjectReport go={go}/>
+ if(view==='donations')return <Donations go={go}/>
+ if(view==='explorer')return <Explorer go={go}/>
+ if(view==='login')return <Login go={go}/>
+ return <PublicHome go={go}/>
 }
