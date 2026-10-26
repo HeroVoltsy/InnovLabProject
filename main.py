@@ -1,25 +1,31 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
-from pydantic import BaseModel, Field
+
+import json
+import os
+import tempfile
 from enum import Enum
 from typing import Optional
-from google import genai
-import tempfile
-import os
-import json
-import anyio # Added for safe async file operations
-from database import get_async_db, lifespan
-from storage import upload_file_to_object_storage
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from pydantic import BaseModel, Field
+from google import genai
+
+# Load configuration
 load_dotenv(".env")
 
 api_key = os.getenv("GEMINI_API_KEY")
+if not api_key:
+    raise RuntimeError("GEMINI_API_KEY is missing from your .env file")
 
-app = FastAPI()
+client = genai.Client(api_key=api_key)
 
-client = genai.Client(
-    api_key=api_key
-)
+# Use a model name supported by your Gemini API key.
+GEMINI_MODEL = os.getenv("GEMINI_MODEL")
+if not GEMINI_MODEL:
+    raise RuntimeError("Set GEMINI_MODEL in your .env file to a supported model name")
+
+app = FastAPI(title="Receipt OCR API")
+
 
 class ExpenseCategory(str, Enum):
     PROGRAM_SUPPLIES = "Program Supplies"
@@ -27,108 +33,121 @@ class ExpenseCategory(str, Enum):
     ADMINISTRATIVE = "Administrative"
     EQUIPMENT = "Equipment"
 
+
 class ReceiptData(BaseModel):
-    transaction_date: Optional[str] = Field(description="Formatted as YYYY-MM-DD.")
-    vendor_name: Optional[str] = Field(description="Entity paid.")
-    total_amount: Optional[float] = Field(description="Final numerical value.")
-    expense_category: Optional[ExpenseCategory] = Field(description="Categorize the expense.")
-    specific_purpose: Optional[str] = Field(description="Brief text explanation.")
+    transaction_date: Optional[str] = Field(
+        default=None,
+        description="Transaction date in YYYY-MM-DD format, or null if unreadable."
+    )
+    vendor_name: Optional[str] = Field(
+        default=None,
+        description="Name of the vendor, or null if unreadable."
+    )
+    total_amount: Optional[float] = Field(
+        default=None,
+        description="Final receipt total as a number, or null if unreadable."
+    )
+    expense_category: Optional[ExpenseCategory] = Field(
+        default=None,
+        description="Best matching expense category, or null if uncertain."
+    )
+    specific_purpose: Optional[str] = Field(
+        default=None,
+        description="Brief description of the purchase, or null if unclear."
+    )
+
+
+@app.get("/")
+async def root():
+    return {"status": "running", "service": "Receipt OCR API"}
+
 
 @app.post("/api/receipts/process")
-async def process_receipt(
-    file: UploadFile = File(...),
-    organization_id: str = Form(...),
-    project_id: str = Form(...),
-    user_id: str = Form(...),
-    db=Depends(get_async_db)
-):
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="File must be an image.")
-
-    storage_key = await upload_file_to_object_storage(file)
-    
-    async with db.transaction():
-        doc_query = """
-            INSERT INTO documents (organization_id, uploaded_by, original_filename, storage_key, mime_type)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id;
-        """
-        document_id = await db.fetchval(
-            doc_query, 
-            organization_id, user_id, file.filename, storage_key, file.content_type
+async def process_receipt(file: UploadFile = File(...)):
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=400,
+            detail="File must be an image."
         )
 
-        prompt = "Analyze this receipt. Extract the transaction details and determine the best expense category."
-        
-        # We still need a temporary file for the Gemini SDK
-        temp_img = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
-        temp_path = temp_img.name
-        temp_img.close() # Close immediately so we can write to it cleanly below
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
-        try:
-            await file.seek(0)
-            content = await file.read()
-            
-            # UPDATE 2: Use anyio for non-blocking disk writes
-            async with await anyio.open_file(temp_path, 'wb') as async_file:
-                await async_file.write(content)
+    suffix = os.path.splitext(file.filename or "")[1] or ".jpg"
+    temp_path = None
+    uploaded_receipt = None
 
-            # Upload to Google
-            uploaded_receipt = await client.aio.files.upload(file=temp_path)
-            
+    try:
+        # Save image temporarily for the Gemini SDK
+        with tempfile.NamedTemporaryFile(
+            delete=False, suffix=suffix
+        ) as temp_file:
+            temp_file.write(content)
+            temp_path = temp_file.name
+
+        # Upload image to Gemini
+        uploaded_receipt = await client.aio.files.upload(file=temp_path)
+
+        prompt = """
+        Analyze this receipt and extract its information.
+
+        Return:
+        - transaction_date in YYYY-MM-DD format
+        - vendor_name
+        - total_amount as a number
+        - expense_category using one of the allowed categories
+        - specific_purpose as a brief purchase description
+
+        Allowed categories:
+        Program Supplies, Transportation, Administrative, Equipment.
+
+        Do not invent missing information. Return null for fields
+        that cannot be determined reliably.
+        """
+
+        response = await client.aio.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=[prompt, uploaded_receipt],
+            config={
+                "response_mime_type": "application/json",
+                "response_json_schema": ReceiptData.model_json_schema(),
+                "temperature": 0.1,
+            },
+        )
+
+        if not response.text:
+            raise HTTPException(
+                status_code=502,
+                detail="Gemini returned an empty response."
+            )
+
+        # Validate the returned JSON against our schema
+        extracted_data = ReceiptData.model_validate_json(response.text)
+
+        return {
+            "status": "success",
+            "filename": file.filename,
+            "extracted_data": extracted_data.model_dump(mode="json"),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        # Keep detailed errors in the server logs
+        print(f"Receipt OCR error: {type(exc).__name__}: {exc}")
+        raise HTTPException(
+            status_code=502,
+            detail="Receipt processing failed. Check the server logs."
+        )
+    finally:
+        # Clean up the Gemini upload
+        if uploaded_receipt is not None:
             try:
-                # Generate content
-                response = await client.aio.models.generate_content(
-                    model="gemini-1.5-flash",
-                    contents=[prompt, uploaded_receipt],
-                    config={
-                        "response_mime_type": "application/json",
-                        "response_json_schema": ReceiptData.model_json_schema(),
-                        "temperature": 0.1
-                    }
-                )
-                extracted_json = json.loads(response.text)
-                
-            finally:
-                # UPDATE 3: Always delete the remote file from Google's servers
                 await client.aio.files.delete(name=uploaded_receipt.name)
-                
-        finally:
-            # Always delete the local temporary file
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
+            except Exception as exc:
+                print(f"Gemini file cleanup failed: {exc}")
 
-        ocr_query = """
-            INSERT INTO ocr_extractions (organization_id, document_id, engine_name, extracted_data, status)
-            VALUES ($1, $2, $3, $4, $5);
-        """
-        await db.execute(
-            ocr_query, 
-            organization_id, document_id, "gemini-1.5-flash", json.dumps(extracted_json), "completed"
-        )
-
-        expense_query = """
-            INSERT INTO expenses (organization_id, project_id, submitted_by, vendor_name, description, expense_date, total_amount, status)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, 'draft')
-            RETURNING id;
-        """
-        expense_id = await db.fetchval(
-            expense_query,
-            organization_id, project_id, user_id,
-            extracted_json.get("vendor_name"),
-            extracted_json.get("specific_purpose", "Receipt extraction"),
-            extracted_json.get("transaction_date"),
-            extracted_json.get("total_amount", 0.0)
-        )
-
-        link_query = """
-            INSERT INTO expense_documents (organization_id, expense_id, document_id, evidence_role)
-            VALUES ($1, $2, $3, 'receipt');
-        """
-        await db.execute(link_query, organization_id, expense_id, document_id)
-
-    return {
-        "status": "success",
-        "expense_id": expense_id,
-        "extracted_data": extracted_json
-    }
+        # Clean up the local temporary image
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
