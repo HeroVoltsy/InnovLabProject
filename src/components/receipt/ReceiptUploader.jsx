@@ -65,10 +65,6 @@ export default function ReceiptUploader({
 
   const [capturedUrl, setCapturedUrl] = useState("")
 
-  const isPdf =
-    file?.type === "application/pdf" ||
-    file?.name.toLowerCase().endsWith(".pdf")
-
   useEffect(() => {
     if (!capturedFile) {
       setCapturedUrl("")
@@ -84,7 +80,7 @@ export default function ReceiptUploader({
   }, [capturedFile])
 
   useEffect(() => {
-    if (!file || isPdf || !file.type.startsWith("image/")) {
+    if (!file || !file.type.startsWith("image/")) {
       setPreviewUrl("")
 
       return undefined
@@ -95,7 +91,7 @@ export default function ReceiptUploader({
     setPreviewUrl(url)
 
     return () => URL.revokeObjectURL(url)
-  }, [file, isPdf])
+  }, [file])
 
   useEffect(() => {
     if (!cameraStream || !videoRef.current) return undefined
@@ -368,7 +364,7 @@ export default function ReceiptUploader({
             A clear receipt photo helps Pondo read the details.
           </p>
           <p className="mt-1 text-sm text-slate-500">
-            JPG, PNG, WebP, HEIC or PDF · under 10 MB
+            JPG, PNG, WebP, or HEIC · under 10 MB
           </p>
           <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
             <button
@@ -391,16 +387,7 @@ export default function ReceiptUploader({
         </div>
       ) : (
         <div className="mt-5 flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center">
-          {isPdf ? (
-            <div className="grid h-32 w-full shrink-0 place-items-center rounded-lg bg-red-50 text-red-700 sm:w-32">
-              <div className="text-center">
-                <span className="text-3xl" aria-hidden="true">
-                  📄
-                </span>
-                <p className="text-xs font-extrabold">PDF</p>
-              </div>
-            </div>
-          ) : previewUrl ? (
+          {previewUrl ? (
             <img
               src={previewUrl}
               alt="Receipt preview"
@@ -434,7 +421,7 @@ export default function ReceiptUploader({
         ref={galleryInput}
         className="sr-only"
         type="file"
-        accept="image/*,application/pdf"
+        accept="image/*"
         onChange={chooseFile}
         disabled={disabled}
         aria-label="Upload receipt from device"
