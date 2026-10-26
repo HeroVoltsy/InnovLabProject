@@ -1,4 +1,3 @@
-
 import json
 import os
 import tempfile
@@ -20,9 +19,6 @@ if not api_key:
 client = genai.Client(api_key=api_key)
 
 # Use a model name supported by your Gemini API key.
-GEMINI_MODEL = os.getenv("GEMINI_MODEL")
-if not GEMINI_MODEL:
-    raise RuntimeError("Set GEMINI_MODEL in your .env file to a supported model name")
 
 app = FastAPI(title="Receipt OCR API")
 
@@ -107,7 +103,7 @@ async def process_receipt(file: UploadFile = File(...)):
         """
 
         response = await client.aio.models.generate_content(
-            model=GEMINI_MODEL,
+            model="gemini-3.5-flash-lite",
             contents=[prompt, uploaded_receipt],
             config={
                 "response_mime_type": "application/json",

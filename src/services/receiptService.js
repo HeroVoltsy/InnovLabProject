@@ -69,6 +69,9 @@ function responseError(response) {
   if (response.status === 400) {
     return new ReceiptServiceError('not-an-image', 'We could not read this file as a receipt. Try another photo or enter the details manually.')
   }
+  if (response.status === 422) {
+    return new ReceiptServiceError('request', 'The receipt upload is missing required fields. Please try selecting the image again.')
+  }
   if (response.status === 413) {
     return new ReceiptServiceError('too-large', 'This receipt file is too large. Choose a file under 10 MB.')
   }
@@ -78,16 +81,33 @@ function responseError(response) {
   return new ReceiptServiceError('request', 'We could not process this receipt. Please try again.')
 }
 
+function normalizeExtractionResponse(payload) {
+  const extracted = payload?.extracted_data
+  if (payload?.status !== 'success' || !extracted || typeof extracted !== 'object') {
+    throw new ReceiptServiceError('invalid-response', 'The receipt service returned an unexpected response. Please try again.')
+  }
+
+  return {
+    date: extracted.transaction_date ?? null,
+    vendor: extracted.vendor_name ?? null,
+    total: extracted.total_amount ?? null,
+    category: extracted.expense_category ?? null,
+    description: extracted.specific_purpose ?? null,
+    confidence: extracted.confidence ?? {},
+    filename: payload.filename ?? null,
+    raw: extracted,
+  }
+}
+
 export async function extractReceipt(file, { signal } = {}) {
   if (USE_MOCK) return extractMock(signal)
 
   const body = new FormData()
-  body.append('receipt', file)
+  body.append('file', file)
 
   let response
   try {
-    // TODO: Connect this endpoint to the FastAPI receipt extraction implementation.
-    response = await fetch(`${API_BASE_URL}/api/receipts/extract`, {
+    response = await fetch(`${API_BASE_URL}/api/receipts/process`, {
       method: 'POST',
       body,
       signal,
@@ -98,5 +118,12 @@ export async function extractReceipt(file, { signal } = {}) {
   }
 
   if (!response.ok) throw responseError(response)
-  return response.json()
+  let payload
+  try {
+    payload = await response.json()
+  } catch {
+    throw new ReceiptServiceError('invalid-response', 'The receipt service returned invalid JSON. Please try again.')
+  }
+
+  return normalizeExtractionResponse(payload)
 }

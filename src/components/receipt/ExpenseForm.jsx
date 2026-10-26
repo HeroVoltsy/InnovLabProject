@@ -103,14 +103,8 @@ function friendlyError(error, action) {
     : 'We could not read this receipt. Please try again or enter the details manually.'
 }
 
-const ALLOWED_MIME_TYPES = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/heic',
-  'application/pdf',
-])
-const ALLOWED_EXTENSIONS = /\.(jpe?g|png|webp|heic|pdf)$/i
+const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic'])
+const ALLOWED_EXTENSIONS = /\.(jpe?g|png|webp|heic)$/i
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 
 export default function ExpenseForm({ onViewExpenses }) {
@@ -118,16 +112,16 @@ export default function ExpenseForm({ onViewExpenses }) {
   const [highlightKey, setHighlightKey] = useState(0)
   const [attemptedSave, setAttemptedSave] = useState(false)
   const [growthMessage, setGrowthMessage] = useState('')
-  const { extract } = useReceiptExtraction()
+  const { extract, isExtracting } = useReceiptExtraction()
   const { save, isSaving } = useExpenseSave()
   const pet = usePet()
   const errors = useMemo(() => validateForm(state.form), [state.form])
-  const isExtracting = state.phase === 'extracting'
   const isLocked = isSaving || isExtracting
 
   const updateField = (field, value) => dispatch({ type: 'FIELD_CHANGED', field, value })
 
   const runExtraction = async (file) => {
+    if (isExtracting) return
     dispatch({ type: 'EXTRACTION_STARTED' })
     try {
       const data = await extract(file)
@@ -146,7 +140,7 @@ export default function ExpenseForm({ onViewExpenses }) {
     // Courtesy check only. The backend must perform the real file validation.
     const hasAllowedType = ALLOWED_MIME_TYPES.has(file.type) || ALLOWED_EXTENSIONS.test(file.name)
     if (!hasAllowedType) {
-      dispatch({ type: 'UPLOAD_ERROR', message: 'Please choose a JPEG, PNG, WebP, HEIC or PDF receipt.' })
+      dispatch({ type: 'UPLOAD_ERROR', message: 'Please choose a JPEG, PNG, WebP, or HEIC receipt image.' })
       return
     }
     if (file.size >= MAX_FILE_SIZE) {
