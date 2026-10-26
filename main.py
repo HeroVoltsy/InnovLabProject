@@ -7,8 +7,10 @@ import tempfile
 import os
 import json
 import anyio # Added for safe async file operations
+from database import get_async_db, lifespan
+from storage import upload_file_to_object_storage
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 # UPDATE 1: Secure API key loading
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
