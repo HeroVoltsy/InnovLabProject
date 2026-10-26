@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently --kill-others --kill-others-on-fail --names frontend,backend --prefix-colors cyan,magenta \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev": "concurrently --kill-others --kill-others-on-fail --names frontend,backend --prefix-colors cyan,magenta \"vite\" \"bash ./scripts/dev-backend.sh\"",
     "dev:frontend": "vite",
     "dev:backend": "bash ./scripts/dev-backend.sh",
     "build": "vite build",
