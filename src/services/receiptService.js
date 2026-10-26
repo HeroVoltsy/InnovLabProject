@@ -1,5 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
+const USE_MOCK = import.meta.env.VITE_USE_RECEIPT_MOCK === 'true' || import.meta.env.VITE_USE_MOCK === 'true'
 const SAMPLE_RECEIPT = {
   date: '2026-10-20',
   vendor: 'Naga Hardware Supply',
